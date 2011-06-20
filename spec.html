@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<title>Jasmine Specs</title>
+<script src="http://jasmine.jelzo.com/1.0.2.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+<script src="http://ajax.cdnjs.com/ajax/libs/underscore.js/1.1.4/underscore-min.js"></script>
+<script src="jquery.fuzzymatch.js"></script>
+<script>
+describe("$.fuzzyMatch", function () {
+
+    it("should give a score of 1 for an exact match", function () {
+        expect($.fuzzyMatch("a", "a").score).toEqual(1);
+        expect($.fuzzyMatch("abcdef", "abcdef").score).toEqual(1);
+        expect($.fuzzyMatch("abCdef", "abCdef").score).toEqual(1);
+    });
+
+    it("should return 0 for abbreviations that don't match", function () {
+        expect($.fuzzyMatch("hello", "bye").score).toEqual(0);
+        expect($.fuzzyMatch("hello", "le").score).toEqual(0);
+        expect($.fuzzyMatch("hello world", "hell oworld").score).toEqual(0);
+    });
+
+    it("should prefer exact matches over prefix matches", function () {
+        expect($.fuzzyMatch("grab", "grab").score).toBeGreaterThan($.fuzzyMatch("grabbed", "grab").score);
+        expect($.fuzzyMatch("grabbed", "grab").score).toBeGreaterThan($.fuzzyMatch("grabbing", "grab").score);
+    });
+
+    it("should prefer closer-together matches over further-apart matches", function () {
+        expect($.fuzzyMatch("garden", "ga").score).toBeGreaterThan($.fuzzyMatch("gray", "ga").score);
+        expect($.fuzzyMatch("aggravate", "ga").score).toBeGreaterThan($.fuzzyMatch("aglutamate", "ga").score);
+    });
+
+    it("should prefer case-sensitive matches over case-insensitivei matches", function () {
+        expect($.fuzzyMatch("CSS", "CS").score).toBeGreaterThan($.fuzzyMatch("css", "CS").score);
+        expect($.fuzzyMatch("arm", "ar").score).toBeGreaterThan($.fuzzyMatch("ARM", "ar").score);
+    });
+
+    it("should prefer things that starts of words more", function () {
+        expect($.fuzzyMatch("outlook-user", "ous").score).toBeGreaterThan($.fuzzyMatch("zoho-user", "ous").score);
+        expect($.fuzzyMatch("outlook-the-user", "ous").score).toBeGreaterThan($.fuzzyMatch("the-outlook-user", "ous").score);
+        expect($.fuzzyMatch("lots-of-outlook-users", "ous").score).toBeGreaterThan($.fuzzyMatch("millions-of-outlook-users", "ous").score);
+        expect($.fuzzyMatch("camelCaseStuff", "css").score).toBeGreaterThan($.fuzzyMatch("CAMELCASESTUFF", "css").score);
+        expect($.fuzzyMatch("CSS", "css").score).toBeGreaterThan($.fuzzyMatch("camelCaseStuff", "css").score);
+    });
+
+    it("should return the html of the best match", function () {
+        expect($.fuzzyMatch("outlook-user", "ous").html).toEqual("<b>o</b>utlook-<b>u</b><b>s</b>er");
+        // Nom —  should put the suggestions through a hyphenator first? :p
+        expect($.fuzzyMatch("outsourced user", "ous").html).toEqual("<b>o</b>utsourced <b>u</b><b>s</b>er");
+        expect($.fuzzyMatch("out-sourced user", "ous").html).toEqual("<b>o</b><b>u</b>t-<b>s</b>ourced user");
+    });
+    
+    it("should escape HTML", function () {
+        expect($.fuzzyMatch("<foo> b&r <bar>", "fob&").html).toEqual("&lt;<b>f</b><b>o</b>o&gt; <b>b</b><b>&amp;</b>r &lt;bar&gt;");
+    });
+});
+</script>
