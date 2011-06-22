@@ -25,11 +25,11 @@ To use this with jQuery.ui.autocomplete, you do:
         source: function (context, callback) {
             callback($(['dog', 'cat', 'cow']).filter(function (a) {
                 // Only show items which match
-                return $.fuzzyMatch(a, context.term);
+                return $.fuzzyMatch(a, context.term).score;
             }).sort(function (a, b) {
                 // And sort them by matchiness.
-                var score_a = $.fuzzyMatch(a, context.term),
-                    score_b = $.fuzzyMatch(b, context.term);
+                var score_a = $.fuzzyMatch(a, context.term).score,
+                    score_b = $.fuzzyMatch(b, context.term).score;
 
                 return score_a < score_b ? -1 : score_a === score_b ? 0 : 1;
             }));
