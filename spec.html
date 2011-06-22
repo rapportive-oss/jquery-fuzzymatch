@@ -21,7 +21,7 @@ describe("$.fuzzyMatch", function () {
 
     it("should prefer exact matches over prefix matches", function () {
         expect($.fuzzyMatch("grab", "grab").score).toBeGreaterThan($.fuzzyMatch("grabbed", "grab").score);
-        expect($.fuzzyMatch("grabbed", "grab").score).toBeGreaterThan($.fuzzyMatch("grabbing", "grab").score);
+        expect($.fuzzyMatch("grabbed", "grab").score).toEqual($.fuzzyMatch("grabbing", "grab").score);
     });
 
     it("should prefer closer-together matches over further-apart matches", function () {

@@ -1,5 +1,5 @@
 /**
- * jQuery.fuzzyMatch.js, version 0.1 (2011-06-19)
+ * jQuery.fuzzyMatch.js, version 0.2 (2011-06-22)
  *
  * https://github.com/rapportive-oss/jquery-fuzzymatch
  *
@@ -50,14 +50,16 @@
         // 1000 characters are inserted between matches.
         PENALTY_CASE_MISMATCH = 0.9999,
 
-        // The goodness of matches should decay slightly with trailing
-        // characters.
+        // If the word has more characters than the user typed, it should
+        // be penalised slightly.
         //
-        // i.e. "quirk" is more likely than "quirkier" when "qu" is typed.
+        // i.e. "html" is more likely than "html5" if I type "html".
         //
-        // This will not change the order of suggestions based on SCORE_* until
-        // 10000 characters are appended.
-        PENALTY_TRAILING = 0.99999;
+        // However, it may well be the case that there's a sensible secondary
+        // ordering (like alphabetical) that it makes sense to rely on when
+        // there are many prefix matches, so we don't make the penalty increase
+        // with the number of tokens.
+        PENALTY_NOT_COMPLETE = 0.99;
 
     /**
      * Generates all possible split objects by splitting a string around a 
@@ -123,7 +125,7 @@
     $.fuzzyMatch = function (string, abbreviation) {
         if (abbreviation === "") {
             return {
-                score: Math.pow(PENALTY_TRAILING, string.length),
+                score: string === "" ? SCORE_CONTINUE_MATCH : PENALTY_NOT_COMPLETE,
                 html: $('<div>').text(string).html()
             };
         }
