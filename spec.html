@@ -48,9 +48,21 @@ describe("$.fuzzyMatch", function () {
         expect($.fuzzyMatch("outsourced user", "ous").html).toEqual("<b>o</b>utsourced <b>u</b><b>s</b>er");
         expect($.fuzzyMatch("out-sourced user", "ous").html).toEqual("<b>o</b><b>u</b>t-<b>s</b>ourced user");
     });
-    
+
     it("should escape HTML", function () {
         expect($.fuzzyMatch("<foo> b&r <bar>", "fob&").html).toEqual("&lt;<b>f</b><b>o</b>o&gt; <b>b</b><b>&amp;</b>r &lt;bar&gt;");
+    });
+
+    it("should not take exponential time in pathological cases", function () {
+        var t = (new Date()).getTime();
+        $.fuzzyMatch("aaaaaaaaaaaaaaaaaaaa", "aaaaaaaaa");
+        // On my laptop the un-optimized algorithm takes about 10 seconds to run the above,
+        // so I'm going out on a limb and saying that there's no computer 100 times faster than
+        // mine that we're likely to run the specs on. [I'm also hoping there's no computer
+        // 10 times slower, so the test should fail in under 2 minutes :p]
+        //
+        // 100ms is just as generous, on my machine it's about 10ms with a proper cache in place.
+        expect((new Date()).getTime() - t).toBeLessThan(100);
     });
 });
 </script>
