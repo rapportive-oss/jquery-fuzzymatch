@@ -104,6 +104,9 @@
      * @param abbreviation, an abbreviation that a user may have typed
      *                      in order to specify that string.
      *
+     * @cache (private), a cache that reduces the expected running time of the
+     *                   algorithm in the case there are many repeated characters.
+     *
      * @return {
      *    score:  A score (0 <= score <= 1) that indicates how likely it is that
      *            the abbreviation matches the string.
@@ -122,7 +125,7 @@
      *
      * }
     **/
-    $.fuzzyMatch = function (string, abbreviation) {
+    $.fuzzyMatch = function (string, abbreviation, cache) {
         if (abbreviation === "") {
             return {
                 score: string === "" ? SCORE_CONTINUE_MATCH : PENALTY_NOT_COMPLETE,
@@ -130,40 +133,50 @@
             };
         }
 
-        return $(allCaseInsensitiveSplits(string, abbreviation.charAt(0)))
-                .map(function (i, split) {
-                    var result = $.fuzzyMatch(split.after, abbreviation.slice(1)),
-                        preceding_char = split.before.charAt(split.before.length - 1);
+        if (cache && cache[string] && cache[string][abbreviation]) {
+            return $.extend({}, cache[string][abbreviation]);
+        }
 
-                    if (split.before === "") {
-                        result.score *= SCORE_CONTINUE_MATCH;
+        cache = cache || {};
+        cache[string] = cache[string] || {};
+        cache[string][abbreviation] =
 
-                    } else if (preceding_char.match(/[\\\/\-_+.# \t"@\[\(\{&]/) || 
-                            (split.chr.toLowerCase() !== split.chr && preceding_char.toLowerCase() === preceding_char)) {
+           $(allCaseInsensitiveSplits(string, abbreviation.charAt(0)))
+            .map(function (i, split) {
+                var result = $.fuzzyMatch(split.after, abbreviation.slice(1), cache),
+                    preceding_char = split.before.charAt(split.before.length - 1);
 
-                        result.score *= SCORE_START_WORD;
-                    } else {
-                        result.score *= SCORE_OK;
-                    }
+                if (split.before === "") {
+                    result.score *= SCORE_CONTINUE_MATCH;
 
-                    if (split.chr !== abbreviation.charAt(0)) {
-                        result.score *= PENALTY_CASE_MISMATCH;
-                    }
+                } else if (preceding_char.match(/[\\\/\-_+.# \t"@\[\(\{&]/) ||
+                        (split.chr.toLowerCase() !== split.chr && preceding_char.toLowerCase() === preceding_char)) {
 
-                    result.score *= Math.pow(PENALTY_SKIPPED, split.before.length);
-                    result.html = $('<div>').text(split.before).append($('<b>').text(split.chr)).append(result.html).html();
+                    result.score *= SCORE_START_WORD;
+                } else {
+                    result.score *= SCORE_OK;
+                }
 
-                    return result;
-                })
-                .sort(function (a, b) {
-                    return a.score < b.score ? 1 : a.score === b.score ? 0 : -1;
-                })[0] || 
+                if (split.chr !== abbreviation.charAt(0)) {
+                    result.score *= PENALTY_CASE_MISMATCH;
+                }
+
+                result.score *= Math.pow(PENALTY_SKIPPED, split.before.length);
+                result.html = $('<div>').text(split.before).append($('<b>').text(split.chr)).append(result.html).html();
+
+                return result;
+            })
+            .sort(function (a, b) {
+                return a.score < b.score ? 1 : a.score === b.score ? 0 : -1;
+            })[0] ||
 
             // No matches for the next character in the abbreviation, abort!
             {
                 score: 0, // This 0 will multiply up to the top, giving a total of 0
                 html: $('<div>').text(string).html()
             };
+
+        return $.extend({}, cache[string][abbreviation]);
     };
 /*global jQuery */
 }(jQuery));
