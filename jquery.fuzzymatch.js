@@ -1,5 +1,5 @@
 /**
- * jQuery.fuzzyMatch.js, version 0.2 (2011-06-22)
+ * jQuery.fuzzyMatch.js, version 0.3 (2011-06-22)
  *
  * https://github.com/rapportive-oss/jquery-fuzzymatch
  *
