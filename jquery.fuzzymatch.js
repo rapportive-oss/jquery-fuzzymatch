@@ -98,6 +98,22 @@
     }
 
     /**
+     * Escapes a string so that it can be interpreted as HTML node content.
+     *
+     * WARNING: The output isn't safe for including in attributes, and I
+     *          haven't considered other HTML contexts.
+     * NOTE: This really is worth it compared to using $('<div>').text(foo).html().
+     *
+     * @param string, the string to escape
+     * @return string, the escaped version.
+     */
+    function htmlEscape(string) {
+        return string.replace(/&/g, '&amp;')
+                     .replace(/</g, '&lt;')
+                     .replace(/>/g, '&gt;');
+    }
+
+    /**
      * Generates a case-insensitive match of the abbreviation against the string
      *
      * @param string, a canonical string to be matched against.
@@ -129,7 +145,7 @@
         if (abbreviation === "") {
             return {
                 score: string === "" ? SCORE_CONTINUE_MATCH : PENALTY_NOT_COMPLETE,
-                html: $('<div>').text(string).html()
+                html: htmlEscape(string)
             };
         }
 
@@ -162,7 +178,7 @@
                 }
 
                 result.score *= Math.pow(PENALTY_SKIPPED, split.before.length);
-                result.html = $('<div>').text(split.before).append($('<b>').text(split.chr)).append(result.html).html();
+                result.html = htmlEscape(split.before) + '<b>' + htmlEscape(split.chr) + '</b>'  + result.html;
 
                 return result;
             })
@@ -173,7 +189,7 @@
             // No matches for the next character in the abbreviation, abort!
             {
                 score: 0, // This 0 will multiply up to the top, giving a total of 0
-                html: $('<div>').text(string).html()
+                html: htmlEscape(string)
             };
 
         return $.extend({}, cache[string][abbreviation]);
